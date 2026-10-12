@@ -1,3 +1,4 @@
+import { PluginSlot } from '@openedx/frontend-plugin-framework';
 import { useIntl } from '@edx/frontend-platform/i18n';
 import { useContextId } from '../../../../data/hooks';
 
@@ -28,27 +29,32 @@ const CourseGrade = () => {
   const applyLockedOverlay = gradesFeatureIsFullyLocked ? 'locked-overlay' : '';
 
   return (
-    <section className="text-dark-700 my-4 rounded raised-card">
-      {(gradesFeatureIsFullyLocked || gradesFeatureIsPartiallyLocked) && <CourseGradeHeader />}
-      <div className={applyLockedOverlay} aria-hidden={gradesFeatureIsFullyLocked}>
-        <div className="row w-100 m-0 p-4">
-          <div className="col-12 col-sm-6 p-0 pr-sm-5.5">
-            <h2>{creditCourseRequirements
-              ? intl.formatMessage(messages.gradesAndCredit)
-              : intl.formatMessage(messages.grades)}
-            </h2>
-            <p className="small">
-              {intl.formatMessage(messages.courseGradeBody)}
-            </p>
+    <PluginSlot
+      id="org.openedx.frontend.learning.progress_card.v1"
+      pluginProps={{ courseId, cardKind: 'course-grade' }}
+    >
+      <section className="text-dark-700 my-4 rounded raised-card">
+        {(gradesFeatureIsFullyLocked || gradesFeatureIsPartiallyLocked) && <CourseGradeHeader />}
+        <div className={applyLockedOverlay} aria-hidden={gradesFeatureIsFullyLocked}>
+          <div className="row w-100 m-0 p-4">
+            <div className="col-12 col-sm-6 p-0 pr-sm-5.5">
+              <h2>{creditCourseRequirements
+                ? intl.formatMessage(messages.gradesAndCredit)
+                : intl.formatMessage(messages.grades)}
+              </h2>
+              <p className="small">
+                {intl.formatMessage(messages.courseGradeBody)}
+              </p>
+            </div>
+            <GradeBar passingGrade={passingGrade} />
           </div>
-          <GradeBar passingGrade={passingGrade} />
+          <div className="row w-100 m-0 px-4">
+            <CreditInformation />
+          </div>
+          <CourseGradeFooter passingGrade={passingGrade} />
         </div>
-        <div className="row w-100 m-0 px-4">
-          <CreditInformation />
-        </div>
-        <CourseGradeFooter passingGrade={passingGrade} />
-      </div>
-    </section>
+      </section>
+    </PluginSlot>
   );
 };
 

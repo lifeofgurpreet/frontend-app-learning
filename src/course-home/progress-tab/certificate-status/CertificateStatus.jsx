@@ -1,3 +1,4 @@
+import { PluginSlot } from '@openedx/frontend-plugin-framework';
 import { useEffect } from 'react';
 import { useDispatch } from 'react-redux';
 import { sendTrackEvent } from '@edx/frontend-platform/analytics';
@@ -241,15 +242,19 @@ const CertificateStatus = () => {
 
   return (
     <section data-testid="certificate-status-component" className="text-dark-700 mb-4">
-      <Card className="bg-light-200 raised-card">
-        <ProgressCertificateStatusSlot courseId={courseId}>
-          <div id={`${certCase}_certificate_status`}>
-            <Card.Header title={header} />
-            <Card.Section className="small text-gray-700">
-              {body}
-            </Card.Section>
-            <Card.Footer>
-              {buttonText && (buttonLocation || buttonAction) && (
+      <PluginSlot
+        id="org.openedx.frontend.learning.progress_card.v1"
+        pluginProps={{ courseId, cardKind: 'certificate-status' }}
+      >
+        <Card className="bg-light-200 raised-card">
+          <ProgressCertificateStatusSlot courseId={courseId}>
+            <div id={`${certCase}_certificate_status`}>
+              <Card.Header title={header} />
+              <Card.Section className="small text-gray-700">
+                {body}
+              </Card.Section>
+              <Card.Footer>
+                {buttonText && (buttonLocation || buttonAction) && (
                 <Button
                   variant="outline-brand"
                   onClick={() => {
@@ -261,11 +266,12 @@ const CertificateStatus = () => {
                 >
                   {buttonText}
                 </Button>
-              )}
-            </Card.Footer>
-          </div>
-        </ProgressCertificateStatusSlot>
-      </Card>
+                )}
+              </Card.Footer>
+            </div>
+          </ProgressCertificateStatusSlot>
+        </Card>
+      </PluginSlot>
     </section>
   );
 };

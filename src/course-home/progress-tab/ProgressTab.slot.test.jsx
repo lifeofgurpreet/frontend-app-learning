@@ -12,7 +12,7 @@ let mockWidth = 1200;
 let mockDisableProgressGraph = false;
 const mockScores = [{ subsections: [{ blockKey: 'block-v1:exam' }] }];
 
-jest.mock('@openedx/frontend-plugin-framework', () => ({ PluginSlot: jest.fn(() => null) }));
+jest.mock('@openedx/frontend-plugin-framework', () => ({ PluginSlot: jest.fn(({ children }) => <>{children}</>) }));
 jest.mock('react-redux', () => ({
   useDispatch: () => mockDispatch,
   useSelector: select => select({ courseHome: { targetUserId: mockTargetUserId } }),
@@ -50,7 +50,7 @@ beforeEach(() => {
   mockDisableProgressGraph = false;
 });
 
-const slotProps = () => PluginSlot.mock.calls.at(-1)[0];
+const slotProps = () => PluginSlot.mock.calls.filter(([props]) => props.id.endsWith('progress_refresh.v1')).at(-1)[0];
 
 test('empty progress refresh slot preserves native render and does not fetch on mount', () => {
   render(<ProgressTab />);

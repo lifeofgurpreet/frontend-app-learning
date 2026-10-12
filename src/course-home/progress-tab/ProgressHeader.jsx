@@ -1,3 +1,4 @@
+import { PluginSlot } from '@openedx/frontend-plugin-framework';
 import { getAuthenticatedUser } from '@edx/frontend-platform/auth';
 import { useIntl } from '@edx/frontend-platform/i18n';
 import { Button } from '@openedx/paragon';
@@ -28,9 +29,11 @@ const ProgressHeader = () => {
     <div className="row w-100 m-0 mt-3 mb-4 justify-content-between">
       <h1>{pageTitle}</h1>
       {administrator && studioUrl && (
-      <Button variant="outline-primary" size="sm" className="align-self-center" href={studioUrl}>
-        {intl.formatMessage(messages.studioLink)}
-      </Button>
+      <PluginSlot id="org.openedx.frontend.learning.progress_header_action.v1">
+        <Button variant="outline-primary" size="sm" className="align-self-center" href={studioUrl}>
+          {intl.formatMessage(messages.studioLink)}
+        </Button>
+      </PluginSlot>
       )}
     </div>
   );

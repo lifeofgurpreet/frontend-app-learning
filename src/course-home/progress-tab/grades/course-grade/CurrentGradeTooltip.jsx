@@ -1,3 +1,4 @@
+import { PluginSlot } from '@openedx/frontend-plugin-framework';
 import PropTypes from 'prop-types';
 
 import { getLocale, isRtl, useIntl } from '@edx/frontend-platform/i18n';
@@ -39,9 +40,11 @@ const CurrentGradeTooltip = ({ tooltipClassName }) => {
         placement="top"
         overlay={(
           <Popover id={`${isPassing ? 'passing' : 'non-passing'}-grade-tooltip`} aria-hidden="true" className={tooltipClassName}>
-            <Popover.Content data-testid="currentGradeTooltipContent" className={isPassing ? 'text-white' : 'text-dark-700'}>
-              {currentGrade.toFixed(0)}{isLocaleRtl ? '\u200f' : ''}%
-            </Popover.Content>
+            <PluginSlot id="org.openedx.frontend.learning.progress_grade_tooltip.v1" pluginProps={{ isPassing }}>
+              <Popover.Content data-testid="currentGradeTooltipContent" className={isPassing ? 'text-white' : 'text-dark-700'}>
+                {currentGrade.toFixed(0)}{isLocaleRtl ? '\u200f' : ''}%
+              </Popover.Content>
+            </PluginSlot>
           </Popover>
         )}
       >

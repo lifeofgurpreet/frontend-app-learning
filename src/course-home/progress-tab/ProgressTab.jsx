@@ -49,13 +49,30 @@ const ProgressTab = () => {
         <div className="col-12 col-md-8 p-0">
           {!disableProgressGraph && <CourseCompletion />}
           <ProgressTabCertificateStatusMainBodySlot />
+          <PluginSlot
+            id="org.openedx.frontend.learning.progress_card.v1"
+            pluginProps={{ courseId, cardKind: 'certificate-guidance' }}
+          >
+            <></>
+          </PluginSlot>
           <ProgressTabCourseGradeSlot />
-          <ProgressTabGradeBreakdownSlot />
+          <PluginSlot
+            id="org.openedx.frontend.learning.progress_card.v1"
+            pluginProps={{ courseId, cardKind: 'grade-breakdown' }}
+          >
+            <ProgressTabGradeBreakdownSlot />
+          </PluginSlot>
         </div>
 
         {/* Side panel */}
         <div className="col-12 col-md-4 p-0 px-md-4">
           <ProgressTabCertificateStatusSidePanelSlot />
+          <PluginSlot
+            id="org.openedx.frontend.learning.progress_card.v1"
+            pluginProps={{ courseId, cardKind: 'completion-hints' }}
+          >
+            <></>
+          </PluginSlot>
           <ProgressTabRelatedLinksSlot />
         </div>
       </div>
