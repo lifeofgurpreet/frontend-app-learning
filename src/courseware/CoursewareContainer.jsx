@@ -1,4 +1,5 @@
 import React, { Component } from 'react';
+import { PluginSlot } from '@openedx/frontend-plugin-framework';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import { createSelector } from '@reduxjs/toolkit';
@@ -80,6 +81,7 @@ export const checkUnitToSequenceUnitRedirect = memoize((
   routeUnitId,
   navigate,
   isPreview,
+  resolveLeaf = null,
   isCurrent = () => true,
 ) => {
   if (courseStatus === 'loaded' && sequenceStatus === 'failed' && !section && !routeUnitId) {
@@ -87,7 +89,7 @@ export const checkUnitToSequenceUnitRedirect = memoize((
       // If the sequence failed to load as a sequence, but it is marked as a possible unit, then
       // we need to look up the correct parent sequence for it, and redirect there.
       const unitId = sequenceId; // just for clarity during the rest of this method
-      return getSequenceForBlockDeprecated(courseId, unitId).then(
+      return (resolveLeaf ? resolveLeaf(courseId, unitId) : getSequenceForBlockDeprecated(courseId, unitId)).then(
         resolved => {
           if (!isCurrent(courseId, sequenceId)) {
             return;
@@ -155,6 +157,19 @@ export const checkSequenceUnitMarkerToSequenceUnitRedirect = memoize(
 );
 
 class CoursewareContainer extends Component {
+  leafNavigationMounted = false;
+
+  leafNavigationGeneration = 0;
+
+  leafNavigationCurrent = memoize((...route) => {
+    const generation = ++this.leafNavigationGeneration;
+    return () => this.leafNavigationMounted && generation === this.leafNavigationGeneration
+      && route.every((value, index) => value === [
+        this.props.routeCourseId, this.props.routeSequenceId, this.props.routeUnitId,
+        this.props.isPreview, this.props.resolveLeaf, this.props.navigate, this.props.getLeafScope?.(),
+      ][index]);
+  });
+
   checkSaveSequencePosition = memoize((unitId) => {
     const {
       courseId,
@@ -180,6 +195,7 @@ class CoursewareContainer extends Component {
 
   componentDidMount() {
     this.mounted = true;
+    this.leafNavigationMounted = true;
     const {
       routeCourseId,
       routeSequenceId,
@@ -205,6 +221,17 @@ class CoursewareContainer extends Component {
       navigate,
       isPreview,
     } = this.props;
+
+    // Invalidate actor/route generations even before Redux has caught up.
+    const leafNavigationCurrent = this.leafNavigationCurrent(
+      routeCourseId,
+      routeSequenceId,
+      routeUnitId,
+      isPreview,
+      this.props.resolveLeaf,
+      navigate,
+      this.props.getLeafScope?.(),
+    );
 
     // Load data whenever the course or sequence ID changes.
     this.checkFetchCourse(routeCourseId);
@@ -280,7 +307,8 @@ class CoursewareContainer extends Component {
       routeUnitId,
       navigate,
       isPreview,
-      this.isCurrentDeepLink,
+      this.props.resolveLeaf,
+      this.props.resolveLeaf ? leafNavigationCurrent : this.isCurrentDeepLink,
     );
 
     // Check sequence to sequence-unit redirect:
@@ -313,6 +341,8 @@ class CoursewareContainer extends Component {
 
   componentWillUnmount() {
     this.mounted = false;
+    this.leafNavigationMounted = false;
+    this.leafNavigationGeneration += 1;
   }
 
   isCurrentDeepLink = (courseId, sequenceId) => this.mounted
@@ -427,9 +457,13 @@ CoursewareContainer.propTypes = {
   fetchSequence: PropTypes.func.isRequired,
   navigate: PropTypes.func.isRequired,
   isPreview: PropTypes.bool.isRequired,
+  resolveLeaf: PropTypes.func,
+  getLeafScope: PropTypes.func,
 };
 
 CoursewareContainer.defaultProps = {
+  resolveLeaf: null,
+  getLeafScope: null,
   courseId: null,
   sequenceId: null,
   routeSequenceId: null,
@@ -543,9 +577,20 @@ const mapStateToProps = (state) => {
   };
 };
 
-export default connect(mapStateToProps, {
+export const NativeCoursewareContainer = connect(mapStateToProps, {
   checkBlockCompletion,
   saveSequencePosition,
   fetchCourse,
   fetchSequence,
 })(withParamsAndNavigation(CoursewareContainer));
+
+const CoursewareContainerSlot = props => (
+  <PluginSlot
+    id="org.openedx.frontend.learning.courseware_container.v1"
+    pluginProps={{ ...props, nativeContainer: NativeCoursewareContainer }}
+  >
+    <NativeCoursewareContainer {...props} />
+  </PluginSlot>
+);
+
+export default CoursewareContainerSlot;
