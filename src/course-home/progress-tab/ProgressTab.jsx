@@ -1,5 +1,8 @@
 import React, { useMemo } from 'react';
+import { PluginSlot } from '@openedx/frontend-plugin-framework';
+import { useDispatch, useSelector } from 'react-redux';
 import { useWindowSize } from '@openedx/paragon';
+import { fetchProgressTab } from '../data/thunks';
 import { useContextId } from '../../data/hooks';
 import { useModel } from '../../generic/model-store';
 import ProgressTabCertificateStatusSidePanelSlot from '../../plugin-slots/ProgressTabCertificateStatusSidePanelSlot';
@@ -15,6 +18,12 @@ import { useGetExamsData } from './hooks';
 
 const ProgressTab = () => {
   const courseId = useContextId();
+  const dispatch = useDispatch();
+  const targetUserId = useSelector(state => state.courseHome.targetUserId);
+  const refreshProgress = React.useCallback(
+    () => dispatch(fetchProgressTab(courseId, targetUserId)),
+    [courseId, targetUserId, dispatch],
+  );
   const { disableProgressGraph, sectionScores } = useModel('progress', courseId);
 
   const sequenceIds = useMemo(() => (
@@ -33,6 +42,7 @@ const ProgressTab = () => {
 
   return (
     <>
+      <PluginSlot id="org.openedx.frontend.learning.progress_refresh.v1" pluginProps={{ courseId, refreshProgress }} />
       <ProgressHeader />
       <div className="row w-100 m-0">
         {/* Main body */}
